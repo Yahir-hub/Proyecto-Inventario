@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose'; // Necesario para transacciones (session)
-import Producto from '../models/producto.js';
-import Categoria from '../models/categoria.js';
+import Producto from '../models/Producto.js';
+import Categoria from '../models/Categoria.js';
 import Venta from '../models/venta.js'; // Importar el modelo de Venta
 
 const router = Router();
@@ -357,6 +357,7 @@ router.post('/categorias/eliminar/:id', async (req, res) => {
         res.redirect(`/categorias?err=Error al eliminar la categoría: ${error.message}`);
     }
 });
+
 
 
 export default router;
