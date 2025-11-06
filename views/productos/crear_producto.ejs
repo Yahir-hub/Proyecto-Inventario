@@ -1,0 +1,65 @@
+<%- include('../templates/header', { title: 'Crear Producto' }) %>
+
+<h1 class="text-4xl font-bold text-gray-800 mb-6">Registrar Nuevo Producto</h1>
+
+<div class="card max-w-2xl mx-auto">
+    <form action="/productos/crear" method="POST" class="space-y-6">
+        
+        <!-- Nombre -->
+        <div>
+            <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
+            <input type="text" id="nombre" name="nombre" class="input-text mt-1" 
+                   value="<%= locals.producto ? producto.nombre : '' %>" required>
+            <% if (locals.errores && errores.nombre) { %>
+                <p class="text-red-500 text-xs mt-1"><%= errores.nombre.message %></p>
+            <% } %>
+        </div>
+
+        <!-- Precio -->
+        <div>
+            <label for="precio" class="block text-sm font-medium text-gray-700">Precio ($)</label>
+            <input type="number" id="precio" name="precio" step="0.01" min="0" class="input-text mt-1" 
+                   value="<%= locals.producto ? producto.precio : '' %>" required>
+            <% if (locals.errores && errores.precio) { %>
+                <p class="text-red-500 text-xs mt-1"><%= errores.precio.message %></p>
+            <% } %>
+        </div>
+
+        <!-- Cantidad -->
+        <div>
+            <label for="cantidad" class="block text-sm font-medium text-gray-700">Cantidad (Stock Inicial)</label>
+            <input type="number" id="cantidad" name="cantidad" min="0" class="input-text mt-1" 
+                   value="<%= locals.producto ? producto.cantidad : '0' %>" required>
+            <% if (locals.errores && errores.cantidad) { %>
+                <p class="text-red-500 text-xs mt-1"><%= errores.cantidad.message %></p>
+            <% } %>
+        </div>
+
+        <!-- Categoría (Relación 1-M) -->
+        <div>
+            <label for="categoriaID" class="block text-sm font-medium text-gray-700">Categoría</label>
+            <select id="categoriaID" name="categoriaID" class="input-text mt-1" required>
+                <option value="">-- Selecciona una Categoría --</option>
+                <% categorias.forEach(categoria => { %>
+                    <option value="<%= categoria._id %>" 
+                        <%= (locals.producto && String(producto.categoriaID) === String(categoria._id)) ? 'selected' : '' %>>
+                        <%= categoria.nombre %>
+                    </option>
+                <% }) %>
+            </select>
+            <% if (locals.errores && errores.categoriaID) { %>
+                <p class="text-red-500 text-xs mt-1"><%= errores.categoriaID.message %></p>
+            <% } %>
+            <% if (categorias.length === 0) { %>
+                <p class="text-yellow-600 text-sm mt-1">Aún no hay categorías. <a href="/categorias/crear" class="text-indigo-600 hover:underline">Crea una aquí</a>.</p>
+            <% } %>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <a href="/" class="px-4 py-2 text-gray-600 hover:text-gray-900 transition rounded-lg">Cancelar</a>
+            <button type="submit" class="btn-primary">Guardar Producto</button>
+        </div>
+    </form>
+</div>
+
+<%- include('../templates/footer') %>

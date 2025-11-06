@@ -1,0 +1,24 @@
+{
+  "name": "sistema-inventario",
+  "version": "1.0.0",
+  "description": "Sistema de inventario completo con Node.js, Express y Mongoose.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "express",
+    "mongoose",
+    "ejs",
+    "inventario"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.4"
+  }
+}

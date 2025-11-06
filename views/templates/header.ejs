@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventario - <%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f7f7; }
+        .container-main { min-height: calc(100vh - 120px); }
+        .btn-primary {
+            @apply bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150;
+        }
+        .input-text {
+            @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500;
+        }
+        .card {
+            @apply bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="bg-indigo-600 shadow-md">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <a href="/" class="text-3xl font-extrabold text-white tracking-tight mb-2 sm:mb-0">
+                Inventario
+            </a>
+            <div class="flex space-x-4">
+                <a href="/" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-lg font-medium transition">Productos</a>
+                <a href="/categorias" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-lg font-medium transition">Categorías</a>
+                <a href="/productos/crear" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-lg font-medium transition bg-indigo-500/50">Nuevo Producto</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container-main container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <% if (locals.mensaje) { %>
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-lg" role="alert">
+                <p><%= mensaje %></p>
+            </div>
+        <% } %>
+        <% if (locals.error) { %>
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-lg" role="alert">
+                <p><strong>Error:</strong> <%= error %></p>
+            </div>
+        <% } %>

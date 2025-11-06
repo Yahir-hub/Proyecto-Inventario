@@ -1,0 +1,395 @@
+<%- include('./templates/header', { title: 'Inventario y Ventas' }) %>
+
+<h1 class="text-4xl font-bold text-gray-800 mb-6">Inventario y Punto de Venta Rápida</h1>
+
+<% if (mensaje) { %>
+    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-lg shadow-md" role="alert">
+        <p class="font-bold">Éxito</p>
+        <p><%= mensaje %></p>
+    </div>
+<% } %>
+
+<% if (error) { %>
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-lg shadow-md" role="alert">
+        <p class="font-bold">Error</p>
+        <p><%= error %></p>
+    </div>
+<% } %>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <div class="card bg-indigo-500 text-white border-l-4 border-indigo-700">
+        <p class="text-sm opacity-80">Total Vendido Histórico</p>
+        <p class="text-4xl font-extrabold">$<%= totalVendido.toFixed(2) %></p>
+        <p class="text-xs mt-1 opacity-70">Acumulado en todas las ventas.</p>
+    </div>
+    
+    <div class="md:col-span-2 card">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Distribución de Stock por Categoría</h3>
+        <div class="relative h-64 md:h-72">
+            <canvas id="stockChart"></canvas>
+        </div>
+    </div>
+    </div>
+
+
+<div class="card mb-8">
+    <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Buscador Dinámico de Productos</h2>
+        <input type="text" id="searchInput" placeholder="Escribe el nombre del producto para filtrar la lista de abajo" class="input-text">
+    
+        <div id="searchResults" class="mt-4 space-y-2"></div>
+</div>
+
+<h2 class="text-2xl font-semibold text-gray-800 mb-4">Listado de Productos</h2>
+
+<div class="overflow-x-auto bg-white rounded-xl shadow-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones / Venta</th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Modificar Stock</th> 
+            </tr>
+        </thead>
+        <tbody id="productTableBody" class="divide-y divide-gray-200">
+            <% productos.forEach(producto => { %>
+                <tr class="product-row hover:bg-gray-50 transition duration-100" 
+                    data-search="<%= producto.nombre.toLowerCase() %>">
+                    <td class="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-900"><%= producto.nombre %></td>
+                    <td class="px-4 py-2 whitespace-nowrap text-xs text-gray-500">$<%= producto.precio.toFixed(2) %></td>
+                    
+                    <td class="px-4 py-2 whitespace-nowrap">
+                        <span id="stock-<%= producto._id %>" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= producto.cantidad > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                            <%= producto.cantidad %>
+                        </span>
+                    </td>
+                    
+                    <td class="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
+                        <%= producto.categoriaID?.nombre || 'Sin Categoría' %>
+                    </td>
+                    
+                    <td class="px-4 py-2 whitespace-nowrap text-right text-xs font-medium">
+                        <form action="/productos/vender/<%= producto._id %>" method="POST" class="form-venta-rapida inline-flex space-x-2 items-center" data-id="<%= producto._id %>">
+                            <input type="number" name="cantidad" value="1" min="1" max="<%= producto.cantidad %>" id="cantidad-<%= producto._id %>" class="w-16 p-1 border rounded-lg text-xs" <%= producto.cantidad <= 0 ? 'disabled' : '' %> required>
+                            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white p-1 rounded-lg text-xs font-bold transition" 
+                                <%= producto.cantidad <= 0 ? 'disabled' : '' %>
+                                title="<%= producto.cantidad <= 0 ? 'Sin Stock' : 'Vender' %>">
+                                Vender
+                            </button>
+                        </form>
+                        <button onclick="confirmDelete('<%= producto.nombre %>', '/productos/eliminar/<%= producto._id %>')" 
+                                class="text-red-600 hover:text-red-900 transition text-xs ml-2">
+                            Eliminar
+                        </button>
+                    </td>
+                    
+                    <td class="px-4 py-2 whitespace-nowrap text-right text-xs font-medium relative">
+                        <button onclick="toggleStockMenu(this, '<%= producto._id %>')"
+                                class="bg-blue-500 hover:bg-blue-600 text-white p-1 rounded-lg text-xs font-bold transition">
+                            Modificar Stock
+                        </button>
+                        
+                        <div id="stock-menu-<%= producto._id %>" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10 hidden p-3">
+                            <form action="/productos/actualizar-stock/<%= producto._id %>" method="POST">
+                                <p class="text-xs font-semibold text-gray-700 mb-2">Nuevo Stock para **<%= producto.nombre %>**:</p>
+                                <input type="number" name="cantidad" value="<%= producto.cantidad %>" min="0" 
+                                       class="input-text w-full mb-3 text-xs" placeholder="Cantidad" required>
+                                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg text-xs font-bold transition">
+                                    Guardar Stock
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const productTableBody = document.getElementById('productTableBody');
+    const productRows = document.querySelectorAll('.product-row'); // Todas las filas de productos
+    let currentDeleteUrl = null;
+
+    // --- FUNCIÓN DE ALERTA MODAL (Reemplazo de confirm/alert) ---
+    const showModal = (title, message, type = 'info', onConfirm = null) => {
+        // [El código del modal se mantiene para la función confirmDelete]
+        const modalId = 'customAlertModal';
+        let modal = document.getElementById(modalId);
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0';
+            document.body.appendChild(modal);
+        }
+
+        let color = '';
+        let buttonText = 'Aceptar';
+        switch (type) {
+            case 'confirm':
+                color = 'bg-red-500';
+                buttonText = 'Eliminar';
+                break;
+            case 'error':
+                color = 'bg-red-500';
+                break;
+            case 'success':
+                color = 'bg-green-500';
+                break;
+            case 'info':
+            default:
+                color = 'bg-indigo-500';
+                break;
+        }
+
+        modal.innerHTML = `
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-96 transform scale-95 transition-transform duration-300">
+                <h3 class="text-xl font-bold mb-3 text-gray-800">${title}</h3>
+                <p class="text-gray-600 mb-6">${message}</p>
+                <div class="flex justify-end space-x-3">
+                    ${onConfirm ?
+                    `<button id="cancelBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition">Cancelar</button>` : ''}
+                    <button id="confirmBtn" class="text-white px-4 py-2 rounded-lg ${color} hover:opacity-90 transition">${buttonText}</button>
+                </div>
+            </div>
+        `;
+        
+        // Pequeña animación de entrada
+        setTimeout(() => {
+             modal.style.opacity = '1';
+             modal.querySelector('div').style.transform = 'scale(1)';
+        }, 10);
+
+        const closeModal = () => {
+            modal.style.opacity = '0';
+            modal.querySelector('div').style.transform = 'scale(0.95)';
+            setTimeout(() => modal.remove(), 300);
+        };
+        
+        document.getElementById('confirmBtn').onclick = () => {
+            closeModal();
+            if (onConfirm) onConfirm();
+        };
+        if (document.getElementById('cancelBtn')) {
+            document.getElementById('cancelBtn').onclick = closeModal;
+        }
+    };
+
+    // Función de confirmación específica para eliminar producto
+    const confirmDelete = (productName, deleteUrl) => {
+        currentDeleteUrl = deleteUrl;
+        showModal(
+            'Confirmar Eliminación',
+            `¿Está seguro de que desea eliminar el producto "${productName}"? Esta acción es irreversible.`,
+            'confirm',
+            executeDelete
+        );
+    };
+
+    // Función que se llama al confirmar la eliminación
+    const executeDelete = () => {
+        if (currentDeleteUrl) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = currentDeleteUrl;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    };
+    
+    // --- LÓGICA DEL MENÚ DESPLEGABLE DE STOCK (NUEVA FUNCIÓN) ---
+    
+    /**
+    * Alterna la visibilidad del menú de actualización de stock.
+    * Cierra cualquier otro menú abierto para evitar múltiples formularios.
+    */
+    const toggleStockMenu = (button, productId) => {
+        const menuId = `stock-menu-${productId}`;
+        const targetMenu = document.getElementById(menuId);
+        
+        // 1. Cerrar todos los demás menús de stock
+        document.querySelectorAll('[id^="stock-menu-"]').forEach(menu => {
+            if (menu.id !== menuId) {
+                menu.classList.add('hidden');
+            }
+        });
+        
+        // 2. Alternar la visibilidad del menú objetivo
+        if (targetMenu) {
+            targetMenu.classList.toggle('hidden');
+        }
+    };
+
+    // Cierra el menú si se hace clic fuera de él
+    document.addEventListener('click', function(event) {
+        const isButton = event.target.closest('button.bg-blue-500'); 
+        const isMenu = event.target.closest('[id^="stock-menu-"]');
+
+        if (!isButton && !isMenu) {
+            document.querySelectorAll('[id^="stock-menu-"]').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+        }
+    }, true);
+    
+    // --- LÓGICA DEL BUSCADOR DINÁMICO (FILTRADO LOCAL) ---
+    const handleSearch = () => {
+        const query = searchInput.value.trim().toLowerCase();
+        
+        // Iterar sobre todas las filas de productos
+        productRows.forEach(row => {
+            const productName = row.getAttribute('data-search');
+            
+            // Si el campo de búsqueda está vacío, mostrar todas las filas
+            if (query === '') {
+                row.style.display = ''; // Muestra la fila (valor por defecto)
+            } else {
+                // Si el nombre del producto incluye el texto de búsqueda, mostrar; si no, ocultar
+                if (productName.includes(query)) {
+                    row.style.display = ''; // Muestra la fila
+                } else {
+                    row.style.display = 'none'; // Oculta la fila
+                }
+            }
+        });
+    };
+
+    // Evento de entrada 
+    searchInput.addEventListener('input', handleSearch);
+
+    // ==========================================================
+    // NUEVO: LÓGICA DE LA GRÁFICA DE STOCK (Chart.js)
+    // ==========================================================
+    try {
+        // 1. Convertimos los datos de EJS a JavaScript
+        const existenciasData = <%- JSON.stringify(existencias) %>;
+
+        // 2. Preparamos los datos para que Chart.js los entienda
+        const labels = Object.keys(existenciasData);
+        const dataPoints = Object.values(existenciasData);
+
+        // 3. Obtenemos el 'lienzo' (canvas) que creamos
+        const ctx = document.getElementById('stockChart');
+
+        // 4. Creamos la gráfica
+        if (ctx && labels.length > 0) {
+            new Chart(ctx, {
+                type: 'doughnut', // Tipo de gráfica: 'doughnut', 'bar', 'pie'
+                data: {
+                    labels: labels, // Nombres de las categorías
+                    datasets: [{
+                        label: 'Unidades en Stock',
+                        data: dataPoints, // Cantidades
+                        backgroundColor: [ // Colores de ejemplo
+                            'rgb(79, 70, 229)',  // Indigo
+                            'rgb(22, 163, 74)',  // Green
+                            'rgb(217, 119, 6)',  // Amber
+                            'rgb(220, 38, 38)',  // Red
+                            'rgb(107, 114, 128)', // Gray
+                            'rgb(59, 130, 246)', // Blue
+                            'rgb(234, 88, 12)'  // Orange
+                        ],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Importante para que se ajuste al 'div'
+                    plugins: {
+                        legend: {
+                            position: 'right', // Mueve las etiquetas a la derecha
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error al crear la gráfica:", e);
+    }
+    
+    // ==========================================================
+    // NUEVO: LÓGICA DE VENTA RÁPIDA (AJAX)
+    // ==========================================================
+    
+    // 1. Escuchamos todos los 'submit' que ocurran dentro de la tabla
+    productTableBody.addEventListener('submit', function(event) {
+        const form = event.target;
+
+        // 2. Verificamos si es un formulario de "Venta Rápida"
+        if (form.classList.contains('form-venta-rapida')) {
+            event.preventDefault(); // ¡Evita la recarga de página!
+            handleVentaRapida(form);
+        }
+    });
+
+    async function handleVentaRapida(form) {
+        const productoId = form.dataset.id;
+        const url = form.action;
+        const button = form.querySelector('button[type="submit"]');
+        const formData = new FormData(form);
+        const cantidadVenta = formData.get('cantidad'); // Obtenemos la cantidad
+
+        // Deshabilitar botón para evitar doble clic
+        button.disabled = true;
+        button.textContent = '...';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    // Estamos enviando datos de formulario URL-encoded
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ cantidad: cantidadVenta }) // Enviamos los datos
+            });
+
+            const data = await response.json();
+
+            if (response.ok) { // Éxito (códigos 200-299)
+                // Actualizar la UI
+                const nuevoStock = data.productoActualizado.cantidad;
+                const stockSpan = document.getElementById(`stock-${productoId}`);
+                const cantidadInput = document.getElementById(`cantidad-${productoId}`);
+
+                stockSpan.textContent = nuevoStock;
+                cantidadInput.max = nuevoStock; // Actualiza el 'max' del input
+                
+                // Cambiar color del stock si llega a 0
+                if (nuevoStock <= 0) {
+                    stockSpan.classList.remove('bg-green-100', 'text-green-800');
+                    stockSpan.classList.add('bg-red-100', 'text-red-800');
+                    // Deshabilitar el botón de vender
+                    button.disabled = true;
+                    button.title = "Sin Stock";
+                    cantidadInput.disabled = true;
+                } else {
+                    stockSpan.classList.remove('bg-red-100', 'text-red-800');
+                    stockSpan.classList.add('bg-green-100', 'text-green-800');
+                }
+
+                // Usamos el modal para notificar el éxito
+                showModal('Venta Exitosa', data.mensaje, 'success');
+
+            } else { // Error (códigos 4xx, 5xx)
+                // Mostrar modal de error
+                showModal('Error en la Venta', data.error, 'error');
+            }
+
+        } catch (error) {
+            // Error de red o algo inesperado
+            console.error('Error en fetch:', error);
+            showModal('Error de Conexión', 'No se pudo conectar con el servidor.', 'error');
+        } finally {
+            // Re-habilitar el botón si no quedó sin stock
+            if (parseInt(document.getElementById(`stock-${productoId}`).textContent) > 0) {
+                button.disabled = false;
+            }
+            button.textContent = 'Vender';
+        }
+    }
+</script>
+
+<%- include('./templates/footer') %>

@@ -1,0 +1,31 @@
+<%- include('../templates/header', { title: 'Crear Categoría' }) %>
+
+<h1 class="text-4xl font-bold text-gray-800 mb-6">Registrar Nueva Categoría</h1>
+
+<div class="card max-w-2xl mx-auto">
+    <form action="/categorias/crear" method="POST" class="space-y-6">
+        
+        <!-- Nombre -->
+        <div>
+            <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la Categoría</label>
+            <input type="text" id="nombre" name="nombre" class="input-text mt-1" 
+                   value="<%= locals.categoria ? categoria.nombre : '' %>" required>
+            <% if (locals.error) { %>
+                <p class="text-red-500 text-xs mt-1"><%= error %></p>
+            <% } %>
+        </div>
+
+        <!-- Descripción -->
+        <div>
+            <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="3" class="input-text mt-1"><%= locals.categoria ? categoria.descripcion : '' %></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <a href="/categorias" class="px-4 py-2 text-gray-600 hover:text-gray-900 transition rounded-lg">Cancelar</a>
+            <button type="submit" class="btn-primary">Guardar Categoría</button>
+        </div>
+    </form>
+</div>
+
+<%- include('../templates/footer') %>
