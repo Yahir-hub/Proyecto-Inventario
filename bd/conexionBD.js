@@ -6,7 +6,6 @@ const conectarDB = async () => {
 
     try {
         const conexion = await mongoose.connect(MONGODB_URI);
-...
         
         // Muestra el nombre del host o la base de datos conectada.
         console.log(`MongoDB Conectada a la base de datos: ${conexion.connection.name}`); 
@@ -32,4 +31,5 @@ try {
 } 
   }
 export default connectBD
+
 */ 
