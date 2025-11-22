@@ -1,0 +1,59 @@
+<%- include('../templates/header') %>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Panel de Administración</h2>
+                <div>
+                    <a href="/dashboard" class="btn btn-secondary me-2">Volver al Dashboard</a>
+                    <a href="/logout" class="btn btn-outline-danger">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-info">
+        <strong>¡Bienvenido Administrador!</strong> Tienes acceso completo al sistema.
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5>Gestión de Usuarios</h5>
+                </div>
+                <div class="card-body">
+                    <p>Administrar usuarios del sistema</p>
+                    <button class="btn btn-danger">Gestionar Usuarios</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5>Configuración del Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <p>Configurar parámetros del sistema</p>
+                    <button class="btn btn-warning">Configurar</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Reportes Avanzados</h5>
+                </div>
+                <div class="card-body">
+                    <p>Generar reportes detallados</p>
+                    <button class="btn btn-info">Ver Reportes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../templates/footer') %>
