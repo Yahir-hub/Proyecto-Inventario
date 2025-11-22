@@ -1,0 +1,66 @@
+<%- include('templates/header') %>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Dashboard - Bienvenido <%= user.name %></h2>
+                <div>
+                    <span class="badge bg-primary me-2">Rol: <%= user.role %></span>
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Acciones Disponibles</h5>
+                </div>
+                <div class="card-body">
+                    <a href="/productos/crear" class="btn btn-success mb-2 d-block">Crear Producto</a>
+                    <a href="/categorias" class="btn btn-info mb-2 d-block">Ver Categorías</a>
+                    <a href="/categorias/crear" class="btn btn-warning mb-2 d-block">Crear Categoría</a>
+                    
+                    <% if (user.role === 'administrador') { %>
+                        <hr>
+                        <h6 class="text-muted">Funciones de Administrador:</h6>
+                        <a href="/admin/panel" class="btn btn-danger mb-2 d-block">Panel de Administración</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Información de Usuario</h5>
+                </div>
+                <div class="card-body text-center">
+                    
+                    <div class="mb-3">
+                        <img src="/uploads/<%= user.fotoPerfil ? user.fotoPerfil : 'default.png' %>" 
+                             alt="Foto de Perfil" 
+                             class="rounded-circle img-thumbnail" 
+                             style="width: 150px; height: 150px; object-fit: cover;">
+                    </div>
+
+                    <div class="text-start">
+                        <p><strong>Usuario:</strong> <%= user.username %></p>
+                        <p><strong>Nombre:</strong> <%= user.name %></p>
+                        <p><strong>Rol:</strong> <%= user.role %></p>
+                    </div>
+
+                    <hr>
+                    <a href="/perfil" class="btn btn-primary w-100">
+                        <i class="fas fa-user-edit"></i> Mi Perfil / Cambiar Foto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('templates/footer') %>
